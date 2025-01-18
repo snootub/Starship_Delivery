@@ -16,13 +16,13 @@ public class InteractionHandler : MonoBehaviour
     // Prefab of chatbox that'll appear when dialogue is ready.
     [SerializeField] private GameObject chatBoxPrefab;
 
-    // Tracks the current line of dialogue
+    // Reference that tracks the current line of dialogue
     private int currentLineIndex = 0;
 
-    // Called by the detection manager to interact with the object
+    // Called by the detection manager to interact with the object on E press.
     public void Interact()
     {
-        // If dialogue is allowed, the chatbox exists, and the dialogue lines are more than zero, do a dialogue interaction
+        // If dialogue is allowed, the chatbox exists, and the total dialogue lines are more than zero, do a dialogue interaction
         if (hasDialogue && chatBoxPrefab != null && dialogueLines.Count > 0)
         {
             // Deleting any previous chatbox instances
@@ -41,10 +41,10 @@ public class InteractionHandler : MonoBehaviour
             TMP_Text chatText = newChatBox.GetComponentInChildren<TMP_Text>();
             if (chatText != null)
             {
+                Debug.Log($"Displayed Dialogue: {dialogueLines[currentLineIndex]}");
                 chatText.text = dialogueLines[currentLineIndex];
                 currentLineIndex = (currentLineIndex + 1) % dialogueLines.Count;
                 //DisplayDialogue(dialogueLines[currentLineIndex]);
-                //Debug.Log($"Displayed Dialogue: {dialogueText}");
             }
             else
             {
@@ -54,6 +54,22 @@ public class InteractionHandler : MonoBehaviour
         else
         {
             Debug.LogWarning("Interaction available, but no dialogue is set.");
+        }
+    }
+
+    public void NextLine() {
+        // If the total dialogue lines are more than zero
+        if (dialogueLines.Count > 0) {
+            currentLineIndex = (currentLineIndex + 1) % dialogueLines.Count;
+            Debug.Log($"Moving to line {currentLineIndex}: {dialogueLines[currentLineIndex]}");
+        }
+    }
+
+    public void SetLine(int index) {
+        // If index is more than or equal to 0 and isn't more than the total lines.
+        if (index >=0 && index < dialogueLines.Count) {
+            currentLineIndex = index;
+            Debug.Log($"Setting dialogue to the line {currentLineIndex}: {dialogueLines[currentLineIndex]}");
         }
     }
 }
