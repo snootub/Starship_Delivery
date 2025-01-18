@@ -3,7 +3,14 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Platform
+  - Chatbox
+  - ChatText
+  - IngredientDropOff
+  - NPC
+  - Object
+  - Objective
   layers:
   - Default
   - TransparentFX
