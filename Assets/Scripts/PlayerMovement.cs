@@ -1,4 +1,4 @@
-using System;
+// using System;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -10,6 +10,11 @@ public class PlayerMovement : MonoBehaviour
     private bool is2D;
     public bool IsMovingCheck = false;
 
+    [Header("Sprint")]
+    public float sprintSpeedMultiplier = 1.5f;
+    public KeyCode sprintKey = KeyCode.LeftShift;
+    private bool isSprinting = false;
+
     [Header("Jump")]
     public float jumpForce;
     public float jumpCooldown;
@@ -19,10 +24,10 @@ public class PlayerMovement : MonoBehaviour
     public bool IsJumpingCheck = false;
 
     [Header("Crouch")]
-    public float crouchSpeed = 5f; // Speed while crouching
-    public float crouchHeight = 0.5f; // Height when crouched
-    public float standingHeight = 2f; // Normal height when standing
-    public float crouchTransitionSpeed = 10f; // How fast to transition to crouch
+    public float crouchSpeed = 5f;
+    public float crouchHeight = 0.5f;
+    public float standingHeight = 2f;
+    public float crouchTransitionSpeed = 10f;
     private bool isCrouching = false;
     private Vector3 originalScale;
     private bool readyToCrouch = true;
@@ -116,6 +121,9 @@ public class PlayerMovement : MonoBehaviour
         horizontalInput = Input.GetAxisRaw("Horizontal");
         if (IsMovingCheck) Debug.Log(horizontalInput);
 
+        // Sprint input
+        isSprinting = Input.GetKey(sprintKey) && grounded && !isCrouching;
+
         // Jump input
         if (Input.GetKey(jumpKey) && readyToJump && grounded)
         {
@@ -143,7 +151,15 @@ public class PlayerMovement : MonoBehaviour
     {
         moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
 
-        float currentMoveSpeed = isCrouching ? crouchSpeed : moveSpeed;
+        float currentMoveSpeed = moveSpeed;
+        if (isCrouching)
+        {
+            currentMoveSpeed = crouchSpeed;
+        }
+        else if (isSprinting)
+        {
+            currentMoveSpeed = moveSpeed * sprintSpeedMultiplier;
+        }
 
         if (grounded)
         {
@@ -158,6 +174,7 @@ public class PlayerMovement : MonoBehaviour
     private void Crouch()
     {
         isCrouching = true;
+        isSprinting = false; // Stop sprinting when crouching
     }
 
     private void StopCrouch()
@@ -186,9 +203,10 @@ public class PlayerMovement : MonoBehaviour
         Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
 
         // limit velocity if needed
-        if(flatVel.magnitude > moveSpeed)
+        float maxSpeed = isSprinting ? moveSpeed * sprintSpeedMultiplier : moveSpeed;
+        if(flatVel.magnitude > maxSpeed)
         {
-            Vector3 limitedVel = flatVel.normalized * moveSpeed;
+            Vector3 limitedVel = flatVel.normalized * maxSpeed;
             rb.velocity = new Vector3(limitedVel.x, rb.velocity.y, limitedVel.z);
         }
     }
@@ -211,13 +229,12 @@ public class PlayerMovement : MonoBehaviour
     {
         grounded = true;
 
-        //PlatformManager P = collision.gameObject.GetComponent<PlatformManager>();
         if (collision.transform.tag == "Platform")
         {
-            transform.parent = collision.transform.parent; //sets player as child of the platform in order to support moving platforms
+            transform.parent = collision.transform.parent;
             PlatformManager P = collision.gameObject.GetComponentInParent<PlatformManager>();
 
-            if (P.bounciness > 0) //bounce handling
+            if (P.bounciness > 0)
             {
                 jumpBoost = 1.0f + P.bounciness;
                 float bv = 0;
@@ -235,13 +252,10 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    //Upon leaving a surface, set player to ungrounded and unparent
     private void OnCollisionExit(Collision collision)
     {
         grounded = false;
-
         transform.parent = null;
-
         jumpBoost = 1.0f;
     }
 
@@ -256,13 +270,13 @@ public class PlayerMovement : MonoBehaviour
         tf.eulerAngles = new Vector3(0f, 0f, 0f);
     }
 
-     public void respawn()
+    public void respawn()
     {
         transform.position = respawnLocation;
         resetOrientation();
         rb.velocity = Vector3.zero;
-        // Reset crouch state on respawn
         isCrouching = false;
+        isSprinting = false;
         transform.localScale = originalScale;
     }
 }
