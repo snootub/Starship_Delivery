@@ -1,4 +1,4 @@
-// using System;
+using System;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -19,9 +19,12 @@ public class PlayerMovement : MonoBehaviour
     public float jumpForce;
     public float jumpCooldown;
     public float airMultiplier;
+    public int maxJumps = 2;  // Maximum number of jumps allowed (2 for double jump)
+    private int jumpsRemaining;  // Current jumps remaining
     bool readyToJump;
     private float jumpBoost = 1.0f;
     public bool IsJumpingCheck = false;
+    public float doubleJumpMultiplier = 0.8f;  // How strong the second jump is compared to the first
 
     [Header("Crouch")]
     public float crouchSpeed = 5f;
@@ -75,6 +78,7 @@ public class PlayerMovement : MonoBehaviour
         ResetJump();
         ResetCrouch();
         grounded = true;
+        jumpsRemaining = maxJumps;
     }
 
     private void Update()
@@ -125,7 +129,7 @@ public class PlayerMovement : MonoBehaviour
         isSprinting = Input.GetKey(sprintKey) && grounded && !isCrouching;
 
         // Jump input
-        if (Input.GetKey(jumpKey) && readyToJump && grounded)
+        if (Input.GetKeyDown(jumpKey) && readyToJump && jumpsRemaining > 0)
         {
             readyToJump = false;
             Jump();
@@ -174,7 +178,7 @@ public class PlayerMovement : MonoBehaviour
     private void Crouch()
     {
         isCrouching = true;
-        isSprinting = false; // Stop sprinting when crouching
+        isSprinting = false;
     }
 
     private void StopCrouch()
@@ -202,7 +206,6 @@ public class PlayerMovement : MonoBehaviour
     {
         Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
 
-        // limit velocity if needed
         float maxSpeed = isSprinting ? moveSpeed * sprintSpeedMultiplier : moveSpeed;
         if(flatVel.magnitude > maxSpeed)
         {
@@ -213,10 +216,18 @@ public class PlayerMovement : MonoBehaviour
 
     private void Jump()
     {
-        // reset y velocity
-        rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+        jumpsRemaining--;
 
-        rb.AddForce(transform.up * jumpForce * jumpBoost, ForceMode.Impulse);
+        // reset y velocity (only on first jump)
+        if (grounded)
+        {
+            rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+        }
+
+        // Apply different force for double jump
+        float currentJumpForce = grounded ? jumpForce : jumpForce * doubleJumpMultiplier;
+        
+        rb.AddForce(transform.up * currentJumpForce * jumpBoost, ForceMode.Impulse);
     }
 
     private void ResetJump()
@@ -224,10 +235,13 @@ public class PlayerMovement : MonoBehaviour
         readyToJump = true;
     }
 
-    //On collision, ground the player and check for properties of the platform
     private void OnCollisionEnter(Collision collision)
     {
-        grounded = true;
+        if (!grounded && collision.contacts[0].normal.y > 0.7f)  // Check if we're landing on top of something
+        {
+            grounded = true;
+            jumpsRemaining = maxJumps;  // Reset available jumps when landing
+        }
 
         if (collision.transform.tag == "Platform")
         {
@@ -277,6 +291,7 @@ public class PlayerMovement : MonoBehaviour
         rb.velocity = Vector3.zero;
         isCrouching = false;
         isSprinting = false;
+        jumpsRemaining = maxJumps;
         transform.localScale = originalScale;
     }
 }
