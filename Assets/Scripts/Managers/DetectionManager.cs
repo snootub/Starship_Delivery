@@ -9,7 +9,8 @@ public class DetectionManager : MonoBehaviour
     // If we want to search for a specific layer of objects so not everything is being searched, we use this.
     [SerializeField] private LayerMask detectionLayer; 
 
-
+    public InventoryManager im; 
+    public Inventory inv;
 
     private void Update()
     {
@@ -36,6 +37,9 @@ public class DetectionManager : MonoBehaviour
             // Returns true/false as it calls a function to compare the object's tag, will follow through if true.
             if (MatchesTag(obj))
             {
+                if(obj.tag == "Collectible"){
+                    im.CollectItem(obj, Inventory.ItemType.Ingredient);
+                }
                 // Debug.Log("Interaction found");
                 // // Makes a interactionhandler reference and connects with the script on the object found
                 InteractionHandler interaction = obj.GetComponent<InteractionHandler>();
@@ -60,6 +64,7 @@ public class DetectionManager : MonoBehaviour
             case "NPC":
             case "Object":
             case "Objective":
+            case "Collectible":
                 return true; // Accept any matching tags
             default:
                 return false; //appropriate tag not found

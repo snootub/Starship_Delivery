@@ -29,6 +29,10 @@ public class InteractionHandler : MonoBehaviour
     [SerializeField] private Text opt2;
 
     [SerializeField] private Choice c;
+
+    public NPCQuest quest;
+    public GameObject quest_anim;
+    public Text quest_name;
     private bool skip = false;
     // Reference that tracks the current line of dialogue
     private int currentLineIndex = 0;
@@ -171,6 +175,11 @@ public class InteractionHandler : MonoBehaviour
         chatBoxPrefab.SetActive(false);
         optionBoxPrefab.SetActive(false);
         c.ans = 0; 
+
+        if(quest.have_quest){
+            quest_name.text = quest.quest_name;
+            quest_anim.SetActive(true);
+        }
         Debug.Log("End of Conversation");
     }
 }

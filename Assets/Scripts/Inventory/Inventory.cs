@@ -29,7 +29,7 @@ public class Inventory : MonoBehaviour
 
     // Dictionary to store items based on their category
     private Dictionary<ItemType, List<Item>> itemCollection = new Dictionary<ItemType, List<Item>>();
-
+    public CanvasInventory ci;
     private void Awake()
     {
         // Initialize the dictionary with empty lists for each item type
@@ -40,20 +40,30 @@ public class Inventory : MonoBehaviour
     // Method to add item to the inventory
     public void AddItem(string name, ItemType type, int qty)
     {
+        // Debug.Log("2"); 
         // Check if the item already exists in the inventory
         foreach (var item in itemCollection[type])
         {
+            // Debug.Log("3"); 
             if (item.itemName == name)
             {
+                // Debug.Log("4"); 
                 // Increment the quantity of the existing item
                 item.quantity += qty;
+                ci.AddItems(name, qty);
                 return;
             }
+            // Debug.Log("5"); 
         }
+        // Debug.Log("6"); 
 
         // Add the new item if it doesn't exist
         Item newItem = new Item(name, type, qty);
+        // Debug.Log("7"); 
         itemCollection[type].Add(newItem);
+        ci.AddItems(name, qty);
+        // Debug.Log("8"); 
+
     }
 
     // Method to remove an item from the inventory
