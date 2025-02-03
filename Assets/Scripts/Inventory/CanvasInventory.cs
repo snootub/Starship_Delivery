@@ -28,6 +28,7 @@ public class CanvasInventory : MonoBehaviour
                 //update the qty according to the item
                 switch (name){
                     case "apple":
+                    case "banana":
                         GameObject temp = j.transform.Find(name).gameObject;
                         GameObject qty = j.transform.Find("qty").gameObject; 
                         Text t = qty.GetComponent<Text>();
@@ -51,6 +52,7 @@ public class CanvasInventory : MonoBehaviour
                 //update the qty according to the item
                 switch (name){
                     case "apple":
+                    case "banana":
                         Debug.Log("test2");
                         GameObject temp = j.transform.Find(name).gameObject;
                         GameObject qty = j.transform.Find("qty").gameObject; 
